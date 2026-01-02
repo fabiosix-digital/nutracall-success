@@ -119,7 +119,7 @@ const EmployeesPage = () => {
   );
 
   return (
-    <MainLayout title="Funcionários">
+    <MainLayout title="Funcionários" description="Gerencie funcionários e permissões">
       <div className="space-y-6 animate-fade-in">
         {/* Header Actions */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

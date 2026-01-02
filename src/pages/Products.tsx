@@ -128,7 +128,7 @@ const ProductsPage = () => {
   );
 
   return (
-    <MainLayout title="Produtos">
+    <MainLayout title="Gerenciador de Produtos" description="Catálogo de produtos sincronizado">
       <div className="space-y-6 animate-fade-in">
         {/* Header Actions */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

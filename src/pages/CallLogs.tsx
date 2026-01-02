@@ -147,7 +147,7 @@ const CallLogsPage = () => {
   });
 
   return (
-    <MainLayout title="Logs de Chamadas">
+    <MainLayout title="Histórico de Ligações" description="Visualize todas as chamadas realizadas">
       <div className="space-y-6 animate-fade-in">
         {/* Header Actions */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
