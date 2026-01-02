@@ -37,7 +37,6 @@ import {
 } from "@/components/ui/select";
 import { Search, MoreVertical, Plus, Play, Pause, Phone as PhoneIcon } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
 
 interface Agent {
   id: string;

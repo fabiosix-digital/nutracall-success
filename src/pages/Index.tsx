@@ -31,7 +31,6 @@ import {
   ShoppingCart,
   AlertTriangle,
   Zap,
-  Package,
 } from "lucide-react";
 
 const chartData = [
