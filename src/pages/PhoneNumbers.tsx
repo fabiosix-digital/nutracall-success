@@ -2,6 +2,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -113,7 +114,7 @@ const PhoneNumbersPage = () => {
   );
 
   return (
-    <MainLayout title="Números de Telefone">
+    <MainLayout title="Números de Telefone" description="Gerencie seus números de telefone">
       <div className="space-y-6 animate-fade-in">
         {/* Header Actions */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

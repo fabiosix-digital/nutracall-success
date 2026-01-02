@@ -41,7 +41,7 @@ const SettingsPage = () => {
   };
 
   return (
-    <MainLayout title="Configurações">
+    <MainLayout title="Configurações" description="Configure suas preferências e integrações">
       <div className="space-y-6 animate-fade-in">
         <Tabs defaultValue="api" className="space-y-6">
           <TabsList className="bg-muted/50">

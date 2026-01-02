@@ -15,6 +15,8 @@ import Employees from "./pages/Employees";
 import Automations from "./pages/Automations";
 import Settings from "./pages/Settings";
 import Billing from "./pages/Billing";
+import Voices from "./pages/Voices";
+import Analytics from "./pages/Analytics";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +31,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/agents" element={<Agents />} />
+            <Route path="/voices" element={<Voices />} />
             <Route path="/phone-numbers" element={<PhoneNumbers />} />
             <Route path="/knowledge-base" element={<KnowledgeBase />} />
             <Route path="/call-logs" element={<CallLogs />} />
@@ -36,6 +39,7 @@ const App = () => (
             <Route path="/orders" element={<Orders />} />
             <Route path="/employees" element={<Employees />} />
             <Route path="/automations" element={<Automations />} />
+            <Route path="/analytics" element={<Analytics />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/billing" element={<Billing />} />
             <Route path="*" element={<NotFound />} />

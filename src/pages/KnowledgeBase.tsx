@@ -113,7 +113,7 @@ const KnowledgeBasePage = () => {
   );
 
   return (
-    <MainLayout title="Knowledge Base">
+    <MainLayout title="Base de Conhecimento" description="Documentos e informações para seus agentes">
       <div className="space-y-6 animate-fade-in">
         {/* Header Actions */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

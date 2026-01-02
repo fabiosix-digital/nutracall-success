@@ -142,7 +142,7 @@ const OrdersPage = () => {
   });
 
   return (
-    <MainLayout title="Pedidos">
+    <MainLayout title="Gerenciador de Pedidos" description="Resumo completo dos pedidos gerados pelas ligações">
       <div className="space-y-6 animate-fade-in">
         {/* Header Actions */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

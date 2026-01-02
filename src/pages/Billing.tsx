@@ -117,7 +117,7 @@ const plans = [
 
 const BillingPage = () => {
   return (
-    <MainLayout title="Faturamento">
+    <MainLayout title="Planos" description="Gerencie seu plano e assinatura">
       <div className="space-y-6 animate-fade-in">
         {/* Usage Overview */}
         <div className="grid gap-4 md:grid-cols-4">
