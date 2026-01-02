@@ -2,7 +2,6 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -18,23 +17,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Phone,
   Plus,
   Search,
@@ -46,9 +28,11 @@ import {
   Globe,
   CheckCircle,
   XCircle,
+  Download,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { ImportNumberModal } from "@/components/modals/ImportNumberModal";
 
 interface PhoneNumber {
   id: string;
@@ -107,7 +91,7 @@ const statusConfig = {
 
 const PhoneNumbersPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   const filteredNumbers = mockPhoneNumbers.filter((phone) =>
     phone.number.includes(searchTerm)
@@ -127,65 +111,16 @@ const PhoneNumbersPage = () => {
               className="w-full pl-9 sm:w-80"
             />
           </div>
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="gradient-primary">
-                <Plus className="mr-2 h-4 w-4" />
-                Adicionar Número
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <Phone className="h-5 w-5 text-primary" />
-                  Adicionar Número
-                </DialogTitle>
-                <DialogDescription>
-                  Importe um número de telefone do seu provedor
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label>Provedor</Label>
-                  <Select defaultValue="twilio">
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="twilio">Twilio</SelectItem>
-                      <SelectItem value="vonage">Vonage</SelectItem>
-                      <SelectItem value="telnyx">Telnyx</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="phone">Número de Telefone</Label>
-                  <Input id="phone" placeholder="+55 11 4000-0000" />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Associar ao Agente</Label>
-                  <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um agente (opcional)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">Suporte Vendas</SelectItem>
-                      <SelectItem value="2">Atendimento Geral</SelectItem>
-                      <SelectItem value="3">Nutrição IA</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button className="gradient-primary" onClick={() => setIsAddDialogOpen(false)}>
-                  Adicionar
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <div className="flex gap-2">
+            <Button variant="outline">
+              <Download className="mr-2 h-4 w-4" />
+              Exportar
+            </Button>
+            <Button className="gradient-primary" onClick={() => setIsImportModalOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Adicionar Número
+            </Button>
+          </div>
         </div>
 
         {/* Stats */}
@@ -317,6 +252,8 @@ const PhoneNumbersPage = () => {
           </Table>
         </div>
       </div>
+
+      <ImportNumberModal open={isImportModalOpen} onOpenChange={setIsImportModalOpen} />
     </MainLayout>
   );
 };

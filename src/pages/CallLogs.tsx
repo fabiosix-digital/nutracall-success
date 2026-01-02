@@ -18,14 +18,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
   FileText,
   Search,
   Download,
@@ -34,28 +26,39 @@ import {
   Play,
   Clock,
   Bot,
-  User,
-  Calendar,
   Filter,
+  Eye,
+  Headphones,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { TranscriptionModal } from "@/components/modals/TranscriptionModal";
+import { LiveVoiceModal } from "@/components/modals/LiveVoiceModal";
+import { CallLog } from "@/types/schema";
 
-interface CallLog {
+interface LocalCallLog {
   id: string;
   phoneNumber: string;
   agentName: string;
   type: "inbound" | "outbound";
   status: "completed" | "missed" | "failed" | "voicemail";
   duration: string;
-  cost: string;
+  durationSeconds: number;
+  cost: {
+    telephony: number;
+    transcription: number;
+    llm: number;
+    tts: number;
+    total: number;
+  };
   timestamp: string;
   date: string;
   transcript?: string;
   sentiment: "positive" | "neutral" | "negative";
+  objectionsDetected?: string[];
 }
 
-const mockCallLogs: CallLog[] = [
+const mockCallLogs: LocalCallLog[] = [
   {
     id: "1",
     phoneNumber: "+55 11 99999-1234",
@@ -63,11 +66,13 @@ const mockCallLogs: CallLog[] = [
     type: "inbound",
     status: "completed",
     duration: "4:32",
-    cost: "R$ 0.45",
+    durationSeconds: 272,
+    cost: { telephony: 0.15, transcription: 0.10, llm: 0.12, tts: 0.08, total: 0.45 },
     timestamp: "14:32",
     date: "02/01/2026",
     transcript: "Cliente: Olá, gostaria de saber sobre o suplemento Whey Protein...\n\nAgente: Olá! Com prazer vou te ajudar. Temos várias opções de Whey Protein...",
     sentiment: "positive",
+    objectionsDetected: ["Preço alto"],
   },
   {
     id: "2",
@@ -76,7 +81,8 @@ const mockCallLogs: CallLog[] = [
     type: "outbound",
     status: "completed",
     duration: "2:15",
-    cost: "R$ 0.23",
+    durationSeconds: 135,
+    cost: { telephony: 0.08, transcription: 0.05, llm: 0.06, tts: 0.04, total: 0.23 },
     timestamp: "13:45",
     date: "02/01/2026",
     transcript: "Agente: Bom dia! Estou ligando para confirmar sua consulta agendada...",
@@ -89,7 +95,8 @@ const mockCallLogs: CallLog[] = [
     type: "inbound",
     status: "missed",
     duration: "-",
-    cost: "R$ 0.00",
+    durationSeconds: 0,
+    cost: { telephony: 0, transcription: 0, llm: 0, tts: 0, total: 0 },
     timestamp: "12:20",
     date: "02/01/2026",
     sentiment: "neutral",
@@ -101,11 +108,13 @@ const mockCallLogs: CallLog[] = [
     type: "inbound",
     status: "completed",
     duration: "8:45",
-    cost: "R$ 0.87",
+    durationSeconds: 525,
+    cost: { telephony: 0.30, transcription: 0.22, llm: 0.20, tts: 0.15, total: 0.87 },
     timestamp: "11:15",
     date: "02/01/2026",
     transcript: "Cliente: Preciso remarcar minha consulta de amanhã...",
     sentiment: "positive",
+    objectionsDetected: ["Falta de tempo", "Agenda lotada"],
   },
   {
     id: "5",
@@ -114,7 +123,8 @@ const mockCallLogs: CallLog[] = [
     type: "inbound",
     status: "failed",
     duration: "0:12",
-    cost: "R$ 0.02",
+    durationSeconds: 12,
+    cost: { telephony: 0.01, transcription: 0.01, llm: 0, tts: 0, total: 0.02 },
     timestamp: "10:30",
     date: "02/01/2026",
     sentiment: "negative",
@@ -128,16 +138,12 @@ const statusConfig = {
   voicemail: { label: "Voicemail", className: "bg-muted text-muted-foreground border-muted" },
 };
 
-const sentimentConfig = {
-  positive: { label: "Positivo", className: "bg-success/10 text-success" },
-  neutral: { label: "Neutro", className: "bg-muted text-muted-foreground" },
-  negative: { label: "Negativo", className: "bg-destructive/10 text-destructive" },
-};
-
 const CallLogsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCall, setSelectedCall] = useState<CallLog | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [selectedCall, setSelectedCall] = useState<CallLog | null>(null);
+  const [isTranscriptionOpen, setIsTranscriptionOpen] = useState(false);
+  const [isLiveVoiceOpen, setIsLiveVoiceOpen] = useState(false);
 
   const filteredLogs = mockCallLogs.filter((log) => {
     const matchesSearch = log.phoneNumber.includes(searchTerm) ||
@@ -145,6 +151,29 @@ const CallLogsPage = () => {
     const matchesStatus = statusFilter === "all" || log.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  const totalCost = mockCallLogs.reduce((acc, log) => acc + log.cost.total, 0);
+
+  const handleViewTranscription = (log: LocalCallLog) => {
+    const callLog: CallLog = {
+      id: log.id,
+      agentId: log.id,
+      agentName: log.agentName,
+      phoneNumber: log.phoneNumber,
+      callerNumber: log.phoneNumber,
+      direction: log.type === "inbound" ? "inbound" : "outbound",
+      status: log.status === "voicemail" ? "completed" : log.status,
+      duration: log.durationSeconds,
+      transcript: log.transcript,
+      audioUrl: "/sample-audio.mp3",
+      cost: log.cost,
+      sentiment: log.sentiment,
+      objectionsDetected: log.objectionsDetected,
+      createdAt: new Date().toISOString(),
+    };
+    setSelectedCall(callLog);
+    setIsTranscriptionOpen(true);
+  };
 
   return (
     <MainLayout title="Histórico de Ligações" description="Visualize todas as chamadas realizadas">
@@ -174,10 +203,16 @@ const CallLogsPage = () => {
               </SelectContent>
             </Select>
           </div>
-          <Button variant="outline">
-            <Download className="mr-2 h-4 w-4" />
-            Exportar
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setIsLiveVoiceOpen(true)}>
+              <Headphones className="mr-2 h-4 w-4" />
+              Ao Vivo
+            </Button>
+            <Button variant="outline">
+              <Download className="mr-2 h-4 w-4" />
+              Exportar
+            </Button>
+          </div>
         </div>
 
         {/* Stats */}
@@ -223,7 +258,7 @@ const CallLogsPage = () => {
                 <PhoneOutgoing className="h-5 w-5 text-warning" />
               </div>
               <div>
-                <p className="text-2xl font-bold">R$ 1.57</p>
+                <p className="text-2xl font-bold">R$ {totalCost.toFixed(2)}</p>
                 <p className="text-xs text-muted-foreground">Custo Total</p>
               </div>
             </div>
@@ -241,16 +276,12 @@ const CallLogsPage = () => {
                 <TableHead>Status</TableHead>
                 <TableHead>Duração</TableHead>
                 <TableHead>Custo</TableHead>
-                <TableHead className="text-right">Horário</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredLogs.map((log) => (
-                <TableRow
-                  key={log.id}
-                  className="cursor-pointer"
-                  onClick={() => setSelectedCall(log)}
-                >
+                <TableRow key={log.id} className="cursor-pointer hover:bg-accent/50">
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <div
@@ -267,7 +298,10 @@ const CallLogsPage = () => {
                           <PhoneOutgoing className="h-4 w-4" />
                         )}
                       </div>
-                      <span className="font-mono">{log.phoneNumber}</span>
+                      <div>
+                        <span className="font-mono">{log.phoneNumber}</span>
+                        <p className="text-xs text-muted-foreground">{log.date} às {log.timestamp}</p>
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -288,11 +322,24 @@ const CallLogsPage = () => {
                     </Badge>
                   </TableCell>
                   <TableCell className="font-mono">{log.duration}</TableCell>
-                  <TableCell>{log.cost}</TableCell>
+                  <TableCell>R$ {log.cost.total.toFixed(2)}</TableCell>
                   <TableCell className="text-right">
-                    <div>
-                      <p className="font-medium">{log.timestamp}</p>
-                      <p className="text-xs text-muted-foreground">{log.date}</p>
+                    <div className="flex items-center justify-end gap-2">
+                      {log.transcript && (
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8"
+                          onClick={() => handleViewTranscription(log)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {log.status === "completed" && (
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Play className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -300,89 +347,18 @@ const CallLogsPage = () => {
             </TableBody>
           </Table>
         </div>
-
-        {/* Call Details Sheet */}
-        <Sheet open={!!selectedCall} onOpenChange={() => setSelectedCall(null)}>
-          <SheetContent className="w-full sm:max-w-xl">
-            {selectedCall && (
-              <>
-                <SheetHeader>
-                  <SheetTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5 text-primary" />
-                    Detalhes da Chamada
-                  </SheetTitle>
-                  <SheetDescription>
-                    {selectedCall.phoneNumber} • {selectedCall.date} às {selectedCall.timestamp}
-                  </SheetDescription>
-                </SheetHeader>
-                <div className="mt-6 space-y-6">
-                  {/* Info Grid */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="rounded-lg bg-muted/50 p-3">
-                      <p className="text-xs text-muted-foreground">Agente</p>
-                      <p className="font-medium">{selectedCall.agentName}</p>
-                    </div>
-                    <div className="rounded-lg bg-muted/50 p-3">
-                      <p className="text-xs text-muted-foreground">Duração</p>
-                      <p className="font-medium">{selectedCall.duration}</p>
-                    </div>
-                    <div className="rounded-lg bg-muted/50 p-3">
-                      <p className="text-xs text-muted-foreground">Custo</p>
-                      <p className="font-medium">{selectedCall.cost}</p>
-                    </div>
-                    <div className="rounded-lg bg-muted/50 p-3">
-                      <p className="text-xs text-muted-foreground">Sentimento</p>
-                      <Badge
-                        variant="outline"
-                        className={cn("mt-1", sentimentConfig[selectedCall.sentiment].className)}
-                      >
-                        {sentimentConfig[selectedCall.sentiment].label}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  {/* Tabs */}
-                  <Tabs defaultValue="transcript" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger value="transcript">Transcrição</TabsTrigger>
-                      <TabsTrigger value="audio">Áudio</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="transcript" className="mt-4">
-                      {selectedCall.transcript ? (
-                        <div className="rounded-lg border border-border bg-muted/30 p-4">
-                          <pre className="whitespace-pre-wrap text-sm">
-                            {selectedCall.transcript}
-                          </pre>
-                        </div>
-                      ) : (
-                        <p className="text-center text-sm text-muted-foreground py-8">
-                          Transcrição não disponível
-                        </p>
-                      )}
-                    </TabsContent>
-                    <TabsContent value="audio" className="mt-4">
-                      <div className="flex items-center justify-center gap-4 rounded-lg border border-border bg-muted/30 p-8">
-                        <Button size="icon" className="h-12 w-12 rounded-full">
-                          <Play className="h-5 w-5" />
-                        </Button>
-                        <div className="flex-1">
-                          <div className="h-2 rounded-full bg-muted">
-                            <div className="h-2 w-1/3 rounded-full bg-primary" />
-                          </div>
-                          <div className="mt-1 flex justify-between text-xs text-muted-foreground">
-                            <span>1:24</span>
-                            <span>{selectedCall.duration}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </TabsContent>
-                  </Tabs>
-                </div>
-              </>
-            )}
-          </SheetContent>
-        </Sheet>
       </div>
+
+      <TranscriptionModal 
+        open={isTranscriptionOpen} 
+        onOpenChange={setIsTranscriptionOpen}
+        call={selectedCall}
+      />
+      
+      <LiveVoiceModal 
+        open={isLiveVoiceOpen} 
+        onOpenChange={setIsLiveVoiceOpen}
+      />
     </MainLayout>
   );
 };
