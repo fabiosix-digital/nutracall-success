@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/select";
 import { Search, MoreVertical, Plus, Play, Pause, Phone as PhoneIcon } from "lucide-react";
 import { useState } from "react";
+import { TestCallModal } from "@/components/modals/TestCallModal";
 
 interface Agent {
   id: string;
@@ -150,6 +151,13 @@ const AgentsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isTestCallModalOpen, setIsTestCallModalOpen] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
+
+  const handleTestCall = (agent: Agent) => {
+    setSelectedAgent(agent);
+    setIsTestCallModalOpen(true);
+  };
 
   const filteredAgents = mockAgents.filter((agent) => {
     const matchesSearch = agent.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -395,7 +403,7 @@ const AgentsPage = () => {
                             <i className="ri-edit-line mr-2"></i>
                             Editar
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleTestCall(agent)}>
                             <i className="ri-phone-line mr-2"></i>
                             Testar Ligação
                           </DropdownMenuItem>
@@ -426,6 +434,13 @@ const AgentsPage = () => {
           </CardContent>
         </Card>
       </div>
+
+      <TestCallModal
+        open={isTestCallModalOpen}
+        onOpenChange={setIsTestCallModalOpen}
+        agentId={selectedAgent?.id}
+        agentName={selectedAgent?.name}
+      />
     </MainLayout>
   );
 };
