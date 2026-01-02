@@ -9,8 +9,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Search, Play, MoreVertical, Plus, Mic, Globe, Star } from "lucide-react";
+import { Search, Play, Pause, MoreVertical, Plus, Mic, Globe, Star } from "lucide-react";
 import { useState } from "react";
+import { VoiceCloneModal } from "@/components/modals/VoiceCloneModal";
 
 interface Voice {
   id: string;
@@ -90,6 +91,8 @@ const mockVoices: Voice[] = [
 const VoicesPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState<"all" | "cloned" | "library">("all");
+  const [isCloneModalOpen, setIsCloneModalOpen] = useState(false);
+  const [playingVoice, setPlayingVoice] = useState<string | null>(null);
 
   const filteredVoices = mockVoices.filter((voice) => {
     const matchesSearch = voice.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -99,6 +102,16 @@ const VoicesPage = () => {
 
   const clonedCount = mockVoices.filter(v => v.type === "cloned").length;
   const libraryCount = mockVoices.filter(v => v.type === "library").length;
+
+  const handlePlayVoice = (voiceId: string) => {
+    if (playingVoice === voiceId) {
+      setPlayingVoice(null);
+    } else {
+      setPlayingVoice(voiceId);
+      // Simulate audio playback
+      setTimeout(() => setPlayingVoice(null), 3000);
+    }
+  };
 
   return (
     <MainLayout title="Biblioteca de Vozes" description="Explore e gerencie vozes disponíveis">
@@ -185,7 +198,7 @@ const VoicesPage = () => {
                     className="pl-9"
                   />
                 </div>
-                <Button className="gradient-primary">
+                <Button className="gradient-primary" onClick={() => setIsCloneModalOpen(true)}>
                   <Plus className="h-4 w-4 mr-1" />
                   <span className="hidden sm:inline">Clonar Voz</span>
                 </Button>
@@ -257,15 +270,31 @@ const VoicesPage = () => {
                     {voice.gender === "female" ? "Feminino" : "Masculino"}
                   </Badge>
                 </div>
-                <Button variant="outline" size="sm" className="w-full">
-                  <Play className="h-4 w-4 mr-2" />
-                  Ouvir Prévia
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full"
+                  onClick={() => handlePlayVoice(voice.id)}
+                >
+                  {playingVoice === voice.id ? (
+                    <>
+                      <Pause className="h-4 w-4 mr-2" />
+                      Pausar
+                    </>
+                  ) : (
+                    <>
+                      <Play className="h-4 w-4 mr-2" />
+                      Ouvir Prévia
+                    </>
+                  )}
                 </Button>
               </CardContent>
             </Card>
           ))}
         </div>
       </div>
+
+      <VoiceCloneModal open={isCloneModalOpen} onOpenChange={setIsCloneModalOpen} />
     </MainLayout>
   );
 };
