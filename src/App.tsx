@@ -5,6 +5,16 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/hooks/use-theme";
 import Index from "./pages/Index";
+import Agents from "./pages/Agents";
+import PhoneNumbers from "./pages/PhoneNumbers";
+import KnowledgeBase from "./pages/KnowledgeBase";
+import CallLogs from "./pages/CallLogs";
+import Products from "./pages/Products";
+import Orders from "./pages/Orders";
+import Employees from "./pages/Employees";
+import Automations from "./pages/Automations";
+import Settings from "./pages/Settings";
+import Billing from "./pages/Billing";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -18,7 +28,16 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="/agents" element={<Agents />} />
+            <Route path="/phone-numbers" element={<PhoneNumbers />} />
+            <Route path="/knowledge-base" element={<KnowledgeBase />} />
+            <Route path="/call-logs" element={<CallLogs />} />
+            <Route path="/products" element={<Products />} />
+            <Route path="/orders" element={<Orders />} />
+            <Route path="/employees" element={<Employees />} />
+            <Route path="/automations" element={<Automations />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/billing" element={<Billing />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
