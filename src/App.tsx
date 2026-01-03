@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Agents from "./pages/Agents";
+import AgentCreate from "./pages/AgentCreate";
 import PhoneNumbers from "./pages/PhoneNumbers";
 import KnowledgeBase from "./pages/KnowledgeBase";
 import CallLogs from "./pages/CallLogs";
@@ -40,6 +41,7 @@ const App = () => (
               {/* Protected routes - will add ProtectedRoute wrapper when backend is connected */}
               <Route path="/" element={<Index />} />
               <Route path="/agents" element={<Agents />} />
+              <Route path="/agents/create" element={<AgentCreate />} />
               <Route path="/voices" element={<Voices />} />
               <Route path="/phone-numbers" element={<PhoneNumbers />} />
               <Route path="/knowledge-base" element={<KnowledgeBase />} />
